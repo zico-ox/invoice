@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FileText, Moon, Sun, Eye, Building2, X, Save, History } from 'lucide-react';
+import { FileText, Eye, Building2, X, Save, History } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { InvoiceData, InvoiceItem } from './types';
@@ -46,7 +46,6 @@ const incrementInvoiceNumber = (current: string) => {
 const InvoiceGenerator = () => {
   const previewRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [isEditingCompany, setIsEditingCompany] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -61,15 +60,6 @@ const InvoiceGenerator = () => {
       dueDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
     };
   });
-
-  // Toggle Dark Mode
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
 
   useEffect(() => {
     const initializeData = async () => {
@@ -286,35 +276,32 @@ const InvoiceGenerator = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-300">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+    <div className="min-h-screen bg-gray-50 font-sans transition-colors duration-300">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto p-4 flex flex-col lg:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3 w-full lg:w-auto justify-center lg:justify-start">
             <div className="p-2.5 bg-blue-600 rounded-lg shadow-lg shadow-blue-600/20">
               <FileText className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Invoice Generator</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Create and manage professional invoices</p>
+              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Invoice Generator</h1>
+              <p className="text-sm text-gray-500">Create and manage professional invoices</p>
             </div>
           </div>
           
           <div className="flex flex-wrap justify-center gap-2 w-full lg:w-auto">
-            <div className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
-              <button onClick={() => setDarkMode(!darkMode)} className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-600 hover:shadow-sm transition-all" title="Toggle Dark Mode">
-                {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
-              <button onClick={() => setShowPreview(true)} className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-600 transition-all">
+            <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg border border-gray-200">
+              <button onClick={() => setShowPreview(true)} className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-white transition-all">
                 <Eye className="w-4 h-4" />
                 <span className="hidden sm:inline">Preview</span>
               </button>
             </div>
 
             <div className="flex items-center gap-2">
-              <button onClick={handleHistoryClick} className="flex items-center gap-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors font-medium text-sm">
+              <button onClick={handleHistoryClick} className="flex items-center gap-2 bg-white text-gray-700 border border-gray-300 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm">
                 <History className="w-4 h-4" /> <span className="hidden sm:inline">History</span>
               </button>
-              <button onClick={handleUpdateCompany} className="flex items-center gap-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors font-medium text-sm">
+              <button onClick={handleUpdateCompany} className="flex items-center gap-2 bg-white text-gray-700 border border-gray-300 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm">
                 <Building2 className="w-4 h-4" /> <span className="hidden sm:inline">Company</span>
               </button>
               <button onClick={handleSaveAndDownload} disabled={isDownloading} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg shadow-blue-600/20 transition-all hover:scale-105 active:scale-95 font-medium text-sm disabled:opacity-70 disabled:cursor-not-allowed">
@@ -344,14 +331,14 @@ const InvoiceGenerator = () => {
         {/* Preview Modal */}
         {showPreview && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 transition-all">
-            <div className="relative w-full max-w-5xl h-[90vh] bg-gray-100 dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-              <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Invoice Preview</h3>
-                <button onClick={() => setShowPreview(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors text-gray-500">
+            <div className="relative w-full max-w-5xl h-[90vh] bg-gray-100 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+              <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white">
+                <h3 className="text-lg font-semibold text-gray-900">Invoice Preview</h3>
+                <button onClick={() => setShowPreview(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
                   <X className="w-6 h-6" />
                 </button>
               </div>
-              <div className="flex-1 overflow-auto p-4 md:p-8 bg-gray-50/50 dark:bg-gray-900/50">
+              <div className="flex-1 overflow-auto p-4 md:p-8 bg-gray-50/50">
                 <div className="flex justify-center min-w-fit">
                   <div className="shadow-lg rounded-xl overflow-hidden ring-1 ring-black/5">
                     <InvoicePreview data={invoice} />
