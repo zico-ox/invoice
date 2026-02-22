@@ -1,3 +1,5 @@
+// c:\Users\fayiz\Documents\codex\invoicemaker\src\app.tsx
+
 import React, { useState, useRef, useEffect } from 'react';
 import { FileText, Eye, Building2, X, Save, History } from 'lucide-react';
 import html2canvas from 'html2canvas';
@@ -72,7 +74,7 @@ const InvoiceGenerator = () => {
           }
         }
 
-        const invoicesResponse = await fetch('https://frc-entries-default-rtdb.firebaseio.com/invoices.json?orderBy="$key"&limitToLast=1');
+        const invoicesResponse = await fetch('https://frc-entries-default-rtdb.firebaseio.com/invoices.json?orderBy=""&limitToLast=1');
         if (invoicesResponse.ok) {
           const invoicesData = await invoicesResponse.json();
           if (invoicesData && Object.keys(invoicesData).length > 0) {
@@ -97,7 +99,6 @@ const InvoiceGenerator = () => {
       billerAddress: invoice.billerAddress,
       billerPhone: invoice.billerPhone,
       billerGst: invoice.billerGst,
-      logo: invoice.logo,
     };
     
     try {
@@ -146,7 +147,7 @@ const InvoiceGenerator = () => {
     const firebaseId = (invoice as any).firebaseId;
     const method = firebaseId ? 'PUT' : 'POST';
     const url = firebaseId 
-      ? `https://frc-entries-default-rtdb.firebaseio.com/invoices/${firebaseId}.json`
+      ? `https://frc-entries-default-rtdb.firebaseio.com/invoices/.json`
       : 'https://frc-entries-default-rtdb.firebaseio.com/invoices.json';
 
     try {
@@ -183,11 +184,28 @@ const InvoiceGenerator = () => {
     const currentData = downloadData || invoice;
 
     try {
-      const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      // Wait for images to load if any
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const canvas = await html2canvas(element, { 
+        scale: 2, 
+        useCORS: true, 
+        backgroundColor: '#ffffff',
+        logging: false,
+        onclone: (clonedDoc) => {
+            const clonedElement = clonedDoc.getElementById('hidden-preview');
+            if (clonedElement) {
+                clonedElement.style.visibility = 'visible';
+                clonedElement.style.position = 'absolute';
+                clonedElement.style.left = '0px';
+                clonedElement.style.top = '0px';
+            }
+        }
+      });
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfWidth = 210;
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pdf = new jsPDF('p', 'mm', [pdfWidth, pdfHeight]);
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Invoice-${currentData.invoiceNumber}.pdf`);
     } catch (error) {
@@ -247,7 +265,7 @@ const InvoiceGenerator = () => {
   const handleHistoryDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this invoice?')) {
       try {
-        await fetch(`https://frc-entries-default-rtdb.firebaseio.com/invoices/${id}.json`, {
+        await fetch(`https://frc-entries-default-rtdb.firebaseio.com/invoices/.json`, {
           method: 'DELETE',
         });
         setHistory(prev => prev.filter(item => (item as any).firebaseId !== id));
@@ -276,73 +294,107 @@ const InvoiceGenerator = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans transition-colors duration-300">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto p-4 flex flex-col lg:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-3 w-full lg:w-auto justify-center lg:justify-start">
-            <div className="p-2.5 bg-blue-600 rounded-lg shadow-lg shadow-blue-600/20">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-blue-100 selection:text-blue-900">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl shadow-lg shadow-blue-600/20 transform transition-transform hover:scale-105">
               <FileText className="w-6 h-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Invoice Generator</h1>
-              <p className="text-sm text-gray-500">Create and manage professional invoices</p>
+            <div className="hidden sm:block">
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight leading-none">Invoice Generator</h1>
+              <p className="text-xs text-slate-500 font-medium mt-1">Professional Invoicing Tool</p>
             </div>
           </div>
           
-          <div className="flex flex-wrap justify-center gap-2 w-full lg:w-auto">
-            <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg border border-gray-200">
-              <button onClick={() => setShowPreview(true)} className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-white transition-all">
-                <Eye className="w-4 h-4" />
-                <span className="hidden sm:inline">Preview</span>
-              </button>
-            </div>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setShowPreview(true)} 
+              className="hidden lg:flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all"
+            >
+              <Eye className="w-4 h-4" />
+              Preview
+            </button>
 
-            <div className="flex items-center gap-2">
-              <button onClick={handleHistoryClick} className="flex items-center gap-2 bg-white text-gray-700 border border-gray-300 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm">
-                <History className="w-4 h-4" /> <span className="hidden sm:inline">History</span>
-              </button>
-              <button onClick={handleUpdateCompany} className="flex items-center gap-2 bg-white text-gray-700 border border-gray-300 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm">
-                <Building2 className="w-4 h-4" /> <span className="hidden sm:inline">Company</span>
-              </button>
-              <button onClick={handleSaveAndDownload} disabled={isDownloading} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg shadow-blue-600/20 transition-all hover:scale-105 active:scale-95 font-medium text-sm disabled:opacity-70 disabled:cursor-not-allowed">
-                <Save className="w-4 h-4" /> {isDownloading ? 'Processing...' : ((invoice as any).firebaseId ? 'Update & Download' : 'Save & Download')}
-              </button>
-            </div>
+            <div className="h-8 w-px bg-slate-200 hidden lg:block mx-1"></div>
+
+            <button 
+              onClick={handleHistoryClick} 
+              className="p-2.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+              title="History"
+            >
+              <History className="w-5 h-5" />
+            </button>
+            
+            <button 
+              onClick={handleUpdateCompany} 
+              className="p-2.5 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+              title="Company Settings"
+            >
+              <Building2 className="w-5 h-5" />
+            </button>
+            
+            <button 
+              onClick={handleSaveAndDownload} 
+              disabled={isDownloading} 
+              className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl shadow-xl shadow-slate-900/10 transition-all hover:translate-y-0.5 active:translate-y-0 font-semibold text-sm disabled:opacity-70 disabled:cursor-not-allowed ml-2"
+            >
+              {isDownloading ? (
+                <span className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Processing...
+                </span>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span className="hidden sm:inline">{(invoice as any).firebaseId ? 'Update & Download' : 'Save & Download'}</span>
+                  <span className="sm:hidden">Save</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto p-4 md:p-8 pt-[180px] lg:pt-32">
-        <div className="max-w-3xl mx-auto">
-          <InvoiceForm 
-            data={invoice} 
-            onChange={handleChange} 
-            onItemChange={handleItemChange}
-            onAddItem={addItem}
-            onRemoveItem={removeItem}
-          />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-28 lg:pt-32 pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-12">
+             <InvoiceForm 
+              data={invoice} 
+              onChange={handleChange} 
+              onItemChange={handleItemChange}
+              onAddItem={addItem}
+              onRemoveItem={removeItem}
+            />
+          </div>
         </div>
 
         {/* Hidden Preview for PDF Generation */}
-        <div className="fixed left-[-9999px] top-0 w-[210mm]">
+        <div id="hidden-preview" className="fixed top-0 left-0 w-[210mm] -z-50 invisible">
           <InvoicePreview ref={previewRef} data={downloadData || invoice} />
         </div>
 
         {/* Preview Modal */}
         {showPreview && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 transition-all">
-            <div className="relative w-full max-w-5xl h-[90vh] bg-gray-100 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-              <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white">
-                <h3 className="text-lg font-semibold text-gray-900">Invoice Preview</h3>
-                <button onClick={() => setShowPreview(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 sm:p-8 transition-all animate-in fade-in duration-200">
+            <div className="relative w-full max-w-6xl h-full max-h-[90vh] bg-slate-100 rounded-2xl shadow-2xl overflow-hidden flex flex-col ring-1 ring-white/10">
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 bg-white z-10">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <Eye className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-800">Live Preview</h3>
+                </div>
+                <button 
+                  onClick={() => setShowPreview(false)} 
+                  className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500 hover:text-slate-800"
+                >
                   <X className="w-6 h-6" />
                 </button>
               </div>
-              <div className="flex-1 overflow-auto p-4 md:p-8 bg-gray-50/50">
-                <div className="flex justify-center min-w-fit">
-                  <div className="shadow-lg rounded-xl overflow-hidden ring-1 ring-black/5">
-                    <InvoicePreview data={invoice} />
-                  </div>
+              <div className="flex-1 overflow-auto p-8 bg-slate-200/50 flex justify-center">
+                <div className="shadow-2xl shadow-slate-400/20 rounded-sm overflow-hidden ring-1 ring-black/5 bg-white min-h-[297mm] h-fit origin-top scale-75 sm:scale-90 md:scale-100 transition-transform duration-300">
+                  <InvoicePreview data={invoice} />
                 </div>
               </div>
             </div>

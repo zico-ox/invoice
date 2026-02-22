@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, User, Layers, Settings, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, User, Layers, Settings, ChevronDown, ChevronUp, CreditCard } from 'lucide-react';
 import { InvoiceData, InvoiceItem } from '../types';
 import { Input } from './ui/Input';
 
@@ -12,124 +12,210 @@ interface Props {
 }
 
 export const InvoiceForm: React.FC<Props> = ({ data, onChange, onItemChange, onAddItem, onRemoveItem }) => {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(true); // Default open for better UX
   
   return (
-    <div className="space-y-8">
-      {/* Client Details */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
-        <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
-          <div className="p-2 bg-blue-50 rounded-lg">
-            <User className="w-5 h-5 text-blue-600" />
+    <div className="space-y-6">
+      {/* Client Details Card */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-shadow hover:shadow-md">
+        <div className="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+          <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+            <User className="w-5 h-5" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-800">Client Details</h3>
+          <h3 className="font-bold text-slate-800">Client Information</h3>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <Input label="Client Name" value={data.clientName} onChange={(e) => onChange('clientName', e.target.value)} />
-          <Input label="Client Email" type="email" value={data.clientEmail} onChange={(e) => onChange('clientEmail', e.target.value)} />
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Input label="Client Name" placeholder="e.g. Acme Corp" value={data.clientName} onChange={(e) => onChange('clientName', e.target.value)} />
+          <Input label="Client Email" type="email" placeholder="client@example.com" value={data.clientEmail} onChange={(e) => onChange('clientEmail', e.target.value)} />
           <div className="md:col-span-2">
-            <Input label="Client Address" value={data.clientAddress} onChange={(e) => onChange('clientAddress', e.target.value)} />
+            <Input label="Client Address" placeholder="123 Business Rd, City, Country" value={data.clientAddress} onChange={(e) => onChange('clientAddress', e.target.value)} />
           </div>
-          <Input label="Date" type="date" value={data.date} onChange={(e) => onChange('date', e.target.value)} />
-          <Input label="Due Date" type="date" value={data.dueDate} onChange={(e) => onChange('dueDate', e.target.value)} />
+          <Input label="Invoice Date" type="date" value={data.date} onChange={(e) => onChange('date', e.target.value)} />
         </div>
       </div>
 
-      {/* Items */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
-        <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
-          <div className="p-2 bg-purple-50 rounded-lg">
-            <Layers className="w-5 h-5 text-purple-600" />
+      {/* Items Card */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-shadow hover:shadow-md">
+        <div className="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+              <Layers className="w-5 h-5" />
+            </div>
+            <h3 className="font-bold text-slate-800">Invoice Items</h3>
           </div>
-          <h3 className="text-lg font-semibold text-gray-800">Items</h3>
+          <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-full">{data.items.length} Items</span>
         </div>
         
-        <div className="space-y-3">
-          <div className="hidden md:grid grid-cols-12 gap-4 px-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
-            <div className="col-span-4">Item</div>
-            <div className="col-span-3">Description</div>
-            <div className="col-span-2">Qty</div>
-            <div className="col-span-2">Price</div>
+        <div className="p-6 space-y-4">
+          <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-2 bg-slate-50 rounded-lg text-xs font-bold text-slate-500 uppercase tracking-wider border border-slate-100">
+            <div className="col-span-5">Item Details</div>
+            <div className="col-span-2 text-center">Qty</div>
+            <div className="col-span-2 text-right">Price</div>
+            <div className="col-span-2 text-right">Total</div>
             <div className="col-span-1"></div>
           </div>
-        {data.items.map((item) => (
-          <div key={item.id} className="grid grid-cols-12 gap-3 items-start md:items-center bg-gray-50 p-4 rounded-lg border border-gray-100 transition-all hover:shadow-sm">
-            <div className="col-span-12 md:col-span-4">
-              <Input placeholder="Item Name" value={item.name} onChange={(e) => onItemChange(item.id, 'name', e.target.value)} />
-            </div>
-            <div className="col-span-12 md:col-span-3">
-              <Input placeholder="Description" value={item.description} onChange={(e) => onItemChange(item.id, 'description', e.target.value)} />
-            </div>
-            <div className="col-span-4 md:col-span-2">
-              <Input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => onItemChange(item.id, 'quantity', parseFloat(e.target.value))} />
-            </div>
-            <div className="col-span-6 md:col-span-2">
-              <Input type="number" placeholder="Price" value={item.price} onChange={(e) => onItemChange(item.id, 'price', parseFloat(e.target.value))} />
-            </div>
-            <div className="col-span-2 md:col-span-1 flex justify-center pb-2">
-              <button onClick={() => onRemoveItem(item.id)} className="text-gray-400 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-colors">
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
+          
+          <div className="space-y-3">
+            {data.items.map((item, index) => (
+              <div key={item.id} className="group relative grid grid-cols-12 gap-4 items-start md:items-center bg-white p-4 rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-sm transition-all duration-200">
+                <div className="col-span-12 md:col-span-5">
+                  <div className="flex md:hidden justify-between items-center mb-1">
+                    <div className="text-xs font-bold text-slate-400 uppercase">Item Name</div>
+                    <button 
+                      onClick={() => onRemoveItem(item.id)} 
+                      className="text-slate-400 hover:text-red-500 p-1 rounded-md transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <Input 
+                    placeholder="Item Name or Description" 
+                    value={item.name} 
+                    onChange={(e) => onItemChange(item.id, 'name', e.target.value)} 
+                    className="border-transparent bg-transparent focus:bg-white hover:bg-slate-50 font-medium text-slate-800 placeholder:text-slate-400"
+                  />
+                </div>
+                <div className="col-span-4 md:col-span-2">
+                  <div className="md:hidden text-xs font-bold text-slate-400 mb-1 uppercase">Qty</div>
+                  <Input 
+                    type="number" 
+                    placeholder="0" 
+                    value={item.quantity} 
+                    onChange={(e) => onItemChange(item.id, 'quantity', parseFloat(e.target.value))}
+                    className="text-center"
+                  />
+                </div>
+                <div className="col-span-4 md:col-span-2">
+                  <div className="md:hidden text-xs font-bold text-slate-400 mb-1 uppercase">Price</div>
+                  <Input 
+                    type="number" 
+                    placeholder="0.00" 
+                    value={item.price} 
+                    onChange={(e) => onItemChange(item.id, 'price', parseFloat(e.target.value))}
+                    className="text-right"
+                  />
+                </div>
+                <div className="col-span-4 md:col-span-2 flex flex-col justify-center items-end h-full pt-1 md:pt-0">
+                  <div className="md:hidden text-xs font-bold text-slate-400 mb-1 uppercase">Total</div>
+                  <span className="font-bold text-slate-700 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 min-w-[80px] text-right">
+                    {data.currency}{((item.quantity || 0) * (item.price || 0)).toFixed(2)}
+                  </span>
+                </div>
+                <div className="hidden md:flex md:col-span-1 justify-center mt-2 md:mt-0">
+                  <button 
+                    onClick={() => onRemoveItem(item.id)} 
+                    className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors opacity-100 md:opacity-0 group-hover:opacity-100"
+                    title="Remove Item"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-        <button onClick={onAddItem} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all flex items-center justify-center gap-2 font-medium">
-          <Plus className="w-4 h-4" /> Add Item
-        </button>
+
+          <button 
+            onClick={onAddItem} 
+            className="w-full py-4 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-400 hover:bg-blue-50/50 transition-all flex items-center justify-center gap-2 font-semibold group"
+          >
+            <div className="bg-slate-100 group-hover:bg-blue-100 p-1 rounded-full transition-colors">
+              <Plus className="w-4 h-4" />
+            </div>
+            Add New Item
+          </button>
         </div>
       </div>
 
-      {/* Settings & Totals */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
+      {/* Settings & Totals Card */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <button 
           onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-          className="w-full flex items-center justify-between gap-3 border-b border-gray-100 pb-4"
+          className="w-full bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between hover:bg-slate-100/50 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gray-100 rounded-lg">
-              <Settings className="w-5 h-5 text-gray-600" />
+            <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
+              <Settings className="w-5 h-5" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-800">Settings & Totals</h3>
+            <h3 className="font-bold text-slate-800">Invoice Settings & Totals</h3>
           </div>
-          {isSettingsOpen ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+          {isSettingsOpen ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
         </button>
+        
         {isSettingsOpen && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-600">Currency</label>
-            <select 
-              value={data.currency} 
-              onChange={(e) => onChange('currency', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            >
-              <option value="₹">INR (₹)</option>
-              <option value="$">USD ($)</option>
-              <option value="€">EUR (€)</option>
-              <option value="£">GBP (£)</option>
-            </select>
-            <Input label="Notes" textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} />
-          </div>
-          <div className="space-y-3">
-            <Input label="Tax Rate (%)" type="number" value={data.taxRate} onChange={(e) => onChange('taxRate', parseFloat(e.target.value))} />
-            <Input label="Shipping Cost" type="number" value={data.shipping} onChange={(e) => onChange('shipping', parseFloat(e.target.value))} />
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Input label="Discount" type="number" value={data.discountValue} onChange={(e) => onChange('discountValue', parseFloat(e.target.value))} />
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Currency Symbol</label>
+                <div className="relative">
+                  <select 
+                    value={data.currency} 
+                    onChange={(e) => onChange('currency', e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none transition-all"
+                  >
+                    <option value="₹">INR (₹)</option>
+                    <option value="$">USD ($)</option>
+                    <option value="€">EUR (€)</option>
+                    <option value="£">GBP (£)</option>
+                  </select>
+                  <CreditCard className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
+                </div>
               </div>
-              <div className="w-1/3">
-                <label className="block text-sm font-medium text-gray-600 mb-1">Type</label>
-                <select 
-                  value={data.discountType} 
-                  onChange={(e) => onChange('discountType', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                >
-                  <option value="percentage">%</option>
-                  <option value="fixed">Fixed</option>
-                </select>
+              <Input 
+                label="Notes & Terms" 
+                textarea 
+                placeholder="Add payment terms, thank you notes, etc."
+                value={data.notes} 
+                onChange={(e) => onChange('notes', e.target.value)} 
+                className="min-h-[120px]"
+              />
+            </div>
+            
+            <div className="bg-slate-50 rounded-xl p-5 border border-slate-100 space-y-4">
+              <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2">Calculations</h4>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <Input 
+                  label="Tax Rate (%)" 
+                  type="number" 
+                  placeholder="0"
+                  value={data.taxRate} 
+                  onChange={(e) => onChange('taxRate', parseFloat(e.target.value))} 
+                />
+                <Input 
+                  label="Shipping Cost" 
+                  type="number" 
+                  placeholder="0.00"
+                  value={data.shipping} 
+                  onChange={(e) => onChange('shipping', parseFloat(e.target.value))} 
+                />
+              </div>
+              
+              <div className="pt-2 border-t border-slate-200">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Discount</label>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <Input 
+                      type="number" 
+                      placeholder="0"
+                      value={data.discountValue} 
+                      onChange={(e) => onChange('discountValue', parseFloat(e.target.value))} 
+                    />
+                  </div>
+                  <div className="w-1/3">
+                    <select 
+                      value={data.discountType} 
+                      onChange={(e) => onChange('discountType', e.target.value)}
+                      className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                    >
+                      <option value="percentage">%</option>
+                      <option value="fixed">Flat</option>
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
         )}
       </div>
     </div>
