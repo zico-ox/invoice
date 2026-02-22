@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Download, FileText, Moon, Sun, Printer, Eye, EyeOff, Building2, X, Save, History } from 'lucide-react';
+import { FileText, Moon, Sun, Eye, Building2, X, Save, History } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { InvoiceData, InvoiceItem } from './types';
@@ -188,6 +188,10 @@ const InvoiceGenerator = () => {
     const element = previewRef.current;
     if (!element) return;
     setIsDownloading(true);
+    
+    // Use downloadData if available, otherwise current invoice
+    const currentData = downloadData || invoice;
+
     try {
       const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
       const imgData = canvas.toDataURL('image/png');
@@ -195,7 +199,7 @@ const InvoiceGenerator = () => {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Invoice-${invoice.invoiceNumber}.pdf`);
+      pdf.save(`Invoice-${currentData.invoiceNumber}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
     } finally {
