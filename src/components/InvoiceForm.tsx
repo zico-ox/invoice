@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Trash2, User, Layers, Settings, ChevronDown, ChevronUp, CreditCard } from 'lucide-react';
 import { InvoiceData, InvoiceItem } from '../types';
 import { Input } from './ui/Input';
+import { Product } from './ProductModal';
 
 interface Props {
   data: InvoiceData;
@@ -9,10 +10,12 @@ interface Props {
   onItemChange: (id: string, field: keyof InvoiceItem, value: any) => void;
   onAddItem: () => void;
   onRemoveItem: (id: string) => void;
+  products: Product[];
 }
 
-export const InvoiceForm: React.FC<Props> = ({ data, onChange, onItemChange, onAddItem, onRemoveItem }) => {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(true); // Default open for better UX
+export const InvoiceForm: React.FC<Props> = ({ data, onChange, onItemChange, onAddItem, onRemoveItem, products }) => {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false); // Default open for better UX
+  const [focusedItemId, setFocusedItemId] = useState<string | null>(null);
   
   return (
     <div className="space-y-6">
@@ -58,7 +61,7 @@ export const InvoiceForm: React.FC<Props> = ({ data, onChange, onItemChange, onA
           <div className="space-y-3">
             {data.items.map((item, index) => (
               <div key={item.id} className="group relative grid grid-cols-12 gap-4 items-start md:items-center bg-white p-4 rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-sm transition-all duration-200">
-                <div className="col-span-12 md:col-span-5">
+                <div className="col-span-12 md:col-span-5 relative">
                   <div className="flex md:hidden justify-between items-center mb-1">
                     <div className="text-xs font-bold text-slate-400 uppercase">Item Name</div>
                     <button 
@@ -72,8 +75,33 @@ export const InvoiceForm: React.FC<Props> = ({ data, onChange, onItemChange, onA
                     placeholder="Item Name or Description" 
                     value={item.name} 
                     onChange={(e) => onItemChange(item.id, 'name', e.target.value)} 
+                    onFocus={() => setFocusedItemId(item.id)}
+                    onBlur={() => setTimeout(() => setFocusedItemId(null), 200)}
                     className="border-transparent bg-transparent focus:bg-white hover:bg-slate-50 font-medium text-slate-800 placeholder:text-slate-400"
                   />
+                  
+                  {/* Product Dropdown */}
+                  {focusedItemId === item.id && item.name && products && products.length > 0 && (
+                    <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto">
+                      {products
+                        .filter(p => p.name.toLowerCase().includes(item.name.toLowerCase()) && p.name !== item.name)
+                        .map(product => (
+                          <button
+                            key={product.id}
+                            className="w-full text-left px-4 py-2.5 hover:bg-blue-50 text-sm flex justify-between items-center transition-colors border-b border-slate-50 last:border-0"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              onItemChange(item.id, 'name', product.name);
+                              onItemChange(item.id, 'price', Number(product.price) || 0);
+                              setFocusedItemId(null);
+                            }}
+                          >
+                            <span className="font-medium text-slate-700">{product.name}</span>
+                            <span className="text-slate-500 font-mono">₹{(Number(product.price) || 0).toFixed(2)}</span>
+                          </button>
+                        ))}
+                    </div>
+                  )}
                 </div>
                 <div className="col-span-4 md:col-span-2">
                   <div className="md:hidden text-xs font-bold text-slate-400 mb-1 uppercase">Qty</div>

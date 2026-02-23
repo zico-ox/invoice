@@ -1,7 +1,7 @@
 // c:\Users\fayiz\Documents\codex\invoicemaker\src\app.tsx
 
 import React, { useState, useRef, useEffect } from 'react';
-import { FileText, Eye, Building2, X, Save, History } from 'lucide-react';
+import { FileText, Eye, Building2, X, Save, History, Package } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { InvoiceData, InvoiceItem } from './types';
@@ -10,6 +10,7 @@ import { InvoicePreview } from './components/InvoicePreview';
 import { CompanyForm } from './components/CompanyForm';
 import { HistoryModal } from './components/HistoryModal';
 import { generatePDF } from '../utils/pdfGenerator';
+import { ProductModal, Product } from './components/ProductModal';
 
 // Inside your download handler:
 // generatePDF(invoiceRef.current, 'my-invoice.pdf');
@@ -55,6 +56,7 @@ const InvoiceGenerator = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [isEditingCompany, setIsEditingCompany] = useState(false);
+  const [showProductModal, setShowProductModal] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<InvoiceData[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
@@ -68,8 +70,30 @@ const InvoiceGenerator = () => {
     };
   });
 
+  const [products, setProducts] = useState<Product[]>([]);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('https://frc-entries-default-rtdb.firebaseio.com/products.json');
+      const data = await response.json();
+      if (data) {
+        const productsArray = Object.entries(data).map(([key, value]) => ({
+          ...(value as Product),
+          id: key,
+          firebaseId: key
+        }));
+        setProducts(productsArray);
+      } else {
+        setProducts([]);
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
+
   useEffect(() => {
     const initializeData = async () => {
+      await fetchProducts();
       try {
         const response = await fetch('https://frc-entries-default-rtdb.firebaseio.com/company.json');
         if (response.ok) {
@@ -330,6 +354,14 @@ const InvoiceGenerator = () => {
             >
               <History className="w-5 h-5" />
             </button>
+
+            <button 
+              onClick={() => setShowProductModal(true)} 
+              className="p-2.5 text-slate-600 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all"
+              title="Manage Products"
+            >
+              <Package className="w-5 h-5" />
+            </button>
             
             <button 
               onClick={handleUpdateCompany} 
@@ -370,6 +402,7 @@ const InvoiceGenerator = () => {
               onItemChange={handleItemChange}
               onAddItem={addItem}
               onRemoveItem={removeItem}
+              products={products}
             />
           </div>
         </div>
@@ -412,6 +445,14 @@ const InvoiceGenerator = () => {
             onChange={handleChange} 
             onClose={() => setIsEditingCompany(false)}
             onSaveDefaults={handleSaveCompanyDefaults}
+          />
+        )}
+
+        {showProductModal && (
+          <ProductModal 
+            onClose={() => setShowProductModal(false)} 
+            products={products}
+            onProductsChange={fetchProducts}
           />
         )}
 
