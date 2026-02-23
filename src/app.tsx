@@ -9,6 +9,11 @@ import { InvoiceForm } from './components/InvoiceForm';
 import { InvoicePreview } from './components/InvoicePreview';
 import { CompanyForm } from './components/CompanyForm';
 import { HistoryModal } from './components/HistoryModal';
+import { generatePDF } from '../utils/pdfGenerator';
+
+// Inside your download handler:
+// generatePDF(invoiceRef.current, 'my-invoice.pdf');
+
 
 
 const DEFAULT_INVOICE: InvoiceData = {
@@ -202,11 +207,11 @@ const InvoiceGenerator = () => {
             }
         }
       });
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/jpeg', 0.75);
       const pdfWidth = 210;
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       const pdf = new jsPDF('p', 'mm', [pdfWidth, pdfHeight]);
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Invoice-${currentData.invoiceNumber}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);

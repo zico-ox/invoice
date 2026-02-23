@@ -16,7 +16,7 @@ export const InvoicePreview = forwardRef<HTMLDivElement, Props>(({ data }, ref) 
   const total = subtotal + tax + data.shipping - discount;
 
   return (
-    <div ref={ref} className="bg-white min-h-[297mm] w-[210mm] mx-auto relative text-slate-800 shadow-2xl font-sans">
+    <div ref={ref} className="bg-white min-h-[297mm] w-[210mm] mx-auto relative text-slate-800 font-sans">
       {/* Header Background - Smoother Gradient */}
       <div className="absolute top-0 left-0 w-full h-72 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 print:bg-slate-900"></div>
       
