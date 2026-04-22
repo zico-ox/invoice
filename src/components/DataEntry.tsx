@@ -392,8 +392,7 @@ export const DataEntry: React.FC = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 border-bottom border-slate-100">
-                    <th className="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Student Profile</th>
-                    <th className="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Location</th>
+                    <th className="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Registered Students</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
@@ -401,17 +400,13 @@ export const DataEntry: React.FC = () => {
                     <tr key={student.id} className="group hover:bg-blue-50/30 transition-colors">
                       <td className="px-8 py-6">
                         <div className="flex flex-col">
-                          <span className="font-bold text-slate-800 text-lg group-hover:text-blue-700 transition-colors">{student.nameEnglish}</span>
-                          <span className="text-slate-500 font-medium text-sm text-right mt-1 font-arabic" dir="rtl">{student.nameArabic}</span>
-                        </div>
-                      </td>
-                      <td className="px-8 py-6 text-right">
-                        <div className="flex flex-col items-end">
-                          <span className="text-slate-700 font-semibold text-sm flex items-center gap-2">
-                            <MapPin className="w-3.5 h-3.5 text-indigo-400" />
-                            {student.placeEnglish}
+                          <span className="font-bold text-slate-800 text-lg group-hover:text-blue-700 transition-colors">
+                            {student.nameEnglish}
                           </span>
-                          <span className="text-slate-400 text-xs mt-1" dir="rtl">{student.placeArabic}</span>
+                          <div className="flex items-center gap-1.5 text-slate-500 font-medium text-sm mt-1">
+                            <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                            {student.placeEnglish}
+                          </div>
                         </div>
                       </td>
                     </tr>
