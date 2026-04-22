@@ -392,13 +392,17 @@ export const DataEntry: React.FC = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 border-bottom border-slate-100">
-                    <th className="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Registered Students</th>
+                    <th className="px-6 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider w-16 text-center">Sl No.</th>
+                    <th className="px-6 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Registered Students</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {students.map((student) => (
+                  {students.map((student, index) => (
                     <tr key={student.id} className="group hover:bg-blue-50/30 transition-colors">
-                      <td className="px-8 py-6">
+                      <td className="px-6 py-6 text-center">
+                        <span className="text-slate-400 font-bold text-sm">{index + 1}</span>
+                      </td>
+                      <td className="px-6 py-6">
                         <div className="flex flex-col">
                           <span className="font-bold text-slate-800 text-lg group-hover:text-blue-700 transition-colors">
                             {student.nameEnglish}
