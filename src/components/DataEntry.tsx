@@ -393,9 +393,7 @@ export const DataEntry: React.FC = () => {
                 <thead>
                   <tr className="bg-slate-50 border-bottom border-slate-100">
                     <th className="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Student Profile</th>
-                    <th className="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Location</th>
-                    <th className="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Contact Details</th>
-                    <th className="px-8 py-5"></th>
+                    <th className="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Location</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
@@ -407,31 +405,14 @@ export const DataEntry: React.FC = () => {
                           <span className="text-slate-500 font-medium text-sm text-right mt-1 font-arabic" dir="rtl">{student.nameArabic}</span>
                         </div>
                       </td>
-                      <td className="px-8 py-6">
-                        <div className="flex flex-col">
+                      <td className="px-8 py-6 text-right">
+                        <div className="flex flex-col items-end">
                           <span className="text-slate-700 font-semibold text-sm flex items-center gap-2">
                             <MapPin className="w-3.5 h-3.5 text-indigo-400" />
                             {student.placeEnglish}
                           </span>
-                          <span className="text-slate-400 text-xs text-right mt-1" dir="rtl">{student.placeArabic}</span>
+                          <span className="text-slate-400 text-xs mt-1" dir="rtl">{student.placeArabic}</span>
                         </div>
-                      </td>
-                      <td className="px-8 py-6">
-                        <div className="space-y-1.5">
-                          <div className="flex items-center gap-2 text-slate-600 text-sm font-medium">
-                            <Phone className="w-3.5 h-3.5 text-purple-400" />
-                            {student.mobile}
-                          </div>
-                          <div className="flex items-center gap-2 text-slate-400 text-xs">
-                            <Mail className="w-3.5 h-3.5" />
-                            {student.email}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-8 py-6 text-right">
-                        <button className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:bg-blue-600 hover:text-white transition-all group/btn">
-                          <ExternalLink className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
-                        </button>
                       </td>
                     </tr>
                   ))}
