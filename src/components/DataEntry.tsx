@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 
 export const DataEntry: React.FC = () => {
+  const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState(false);
   const [students, setStudents] = useState<any[]>([]);
   const [showMenu, setShowMenu] = useState(false);
