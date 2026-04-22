@@ -10,11 +10,17 @@ import {
   UserPlus,
   ArrowLeft,
   CheckCircle2,
-  Loader2
+  Loader2,
+  MoreVertical,
+  Users,
+  Search,
+  ExternalLink
 } from 'lucide-react';
 
 export const DataEntry: React.FC = () => {
-  const [loading, setLoading] = useState(false);
+  const [viewMode, setViewMode] = useState(false);
+  const [students, setStudents] = useState<any[]>([]);
+  const [showMenu, setShowMenu] = useState(false);
   const [formData, setFormData] = useState({
     nameEnglish: '',
     nameArabic: '',
@@ -27,6 +33,32 @@ export const DataEntry: React.FC = () => {
     mobile: '',
     email: ''
   });
+
+  const fetchStudents = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('https://frc-entries-default-rtdb.firebaseio.com/students.json');
+      const data = await response.json();
+      if (data) {
+        const studentList = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        })).reverse();
+        setStudents(studentList);
+      }
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      alert('Failed to load students.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewStudents = () => {
+    setViewMode(true);
+    setShowMenu(false);
+    fetchStudents();
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -76,13 +108,43 @@ export const DataEntry: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4">
       <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Student Data Entry</h2>
-          <p className="text-slate-500 font-medium mt-2">Register new student details with professional precision</p>
-          <div className="h-1 w-20 bg-blue-600 mx-auto mt-4 rounded-full"></div>
+        <div className="flex justify-between items-start mb-10">
+          <div className="flex-1">
+            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+              {viewMode ? 'Registered Students' : 'Student Data Entry'}
+            </h2>
+            <p className="text-slate-500 font-medium mt-2">
+              {viewMode 
+                ? `Viewing all ${students.length} registered students`
+                : 'Register new student details with professional precision'}
+            </p>
+            {!viewMode && <div className="h-1 w-20 bg-blue-600 mt-4 rounded-full"></div>}
+          </div>
+          
+          <div className="relative">
+            <button 
+              onClick={() => setShowMenu(!showMenu)}
+              className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-all shadow-sm active:scale-95"
+            >
+              <MoreVertical className="w-6 h-6" />
+            </button>
+            
+            {showMenu && (
+              <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl shadow-slate-200/80 border border-slate-100 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                <button
+                  onClick={viewMode ? () => setViewMode(false) : handleViewStudents}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 text-slate-700 hover:text-blue-600 transition-colors font-semibold text-sm"
+                >
+                  {viewMode ? <UserPlus className="w-5 h-5" /> : <Users className="w-5 h-5" />}
+                  {viewMode ? 'New Registration' : 'View Students'}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200 overflow-hidden">
+      {!viewMode ? (
+        <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200 overflow-hidden">
         <div className="p-8 space-y-10">
           
           {/* Personal Information Section */}
@@ -303,6 +365,89 @@ export const DataEntry: React.FC = () => {
           </button>
         </div>
       </form>
+      ) : (
+        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200 overflow-hidden">
+          {loading ? (
+            <div className="p-20 flex flex-col items-center justify-center gap-4">
+              <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+              <p className="text-slate-500 font-semibold animate-pulse">Loading students data...</p>
+            </div>
+          ) : students.length === 0 ? (
+            <div className="p-20 text-center">
+              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Users className="w-10 h-10 text-slate-300" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-800 mb-2">No Students Found</h3>
+              <p className="text-slate-500 mb-8 max-w-xs mx-auto">Start by registering your first student in the system.</p>
+              <button 
+                onClick={() => setViewMode(false)}
+                className="bg-blue-600 text-white px-8 py-3 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+              >
+                Go to Registration
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-bottom border-slate-100">
+                    <th className="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Student Profile</th>
+                    <th className="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Location</th>
+                    <th className="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-wider">Contact Details</th>
+                    <th className="px-8 py-5"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {students.map((student) => (
+                    <tr key={student.id} className="group hover:bg-blue-50/30 transition-colors">
+                      <td className="px-8 py-6">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-slate-800 text-lg group-hover:text-blue-700 transition-colors">{student.nameEnglish}</span>
+                          <span className="text-slate-500 font-medium text-sm text-right mt-1 font-arabic" dir="rtl">{student.nameArabic}</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex flex-col">
+                          <span className="text-slate-700 font-semibold text-sm flex items-center gap-2">
+                            <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+                            {student.placeEnglish}
+                          </span>
+                          <span className="text-slate-400 text-xs text-right mt-1" dir="rtl">{student.placeArabic}</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2 text-slate-600 text-sm font-medium">
+                            <Phone className="w-3.5 h-3.5 text-purple-400" />
+                            {student.mobile}
+                          </div>
+                          <div className="flex items-center gap-2 text-slate-400 text-xs">
+                            <Mail className="w-3.5 h-3.5" />
+                            {student.email}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6 text-right">
+                        <button className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:bg-blue-600 hover:text-white transition-all group/btn">
+                          <ExternalLink className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex justify-center">
+                <button 
+                  onClick={() => setViewMode(false)}
+                  className="flex items-center gap-2 text-blue-600 font-bold hover:gap-3 transition-all"
+                >
+                  <ArrowLeft className="w-5 h-5" /> Back to Registration Form
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       </div>
     </div>
   );
