@@ -1,7 +1,8 @@
 // c:\Users\fayiz\Documents\codex\invoicemaker\src\app.tsx
 
 import React, { useState, useRef, useEffect } from 'react';
-import { FileText, Eye, Building2, X, Save, History, Package } from 'lucide-react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { FileText, Eye, Building2, X, Save, History, Package, UserPlus } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { InvoiceData, InvoiceItem } from './types';
@@ -11,6 +12,7 @@ import { CompanyForm } from './components/CompanyForm';
 import { HistoryModal } from './components/HistoryModal';
 import { generatePDF } from '../utils/pdfGenerator';
 import { ProductModal, Product } from './components/ProductModal';
+import { DataEntry } from './components/DataEntry';
 
 // Inside your download handler:
 // generatePDF(invoiceRef.current, 'my-invoice.pdf');
@@ -58,6 +60,9 @@ const InvoiceGenerator = () => {
   const [isEditingCompany, setIsEditingCompany] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentView = location.pathname === '/data-entry' ? 'dataentry' : 'invoice';
   const [history, setHistory] = useState<InvoiceData[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [downloadData, setDownloadData] = useState<InvoiceData | null>(null);
@@ -324,88 +329,103 @@ const InvoiceGenerator = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-blue-100 selection:text-blue-900">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl shadow-lg shadow-blue-600/20 transform transition-transform hover:scale-105">
-              <FileText className="w-6 h-6 text-white" />
+      {currentView === 'invoice' ? (
+        <>
+          <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm transition-all duration-300">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl shadow-lg shadow-blue-600/20 transform transition-transform hover:scale-105">
+                  <FileText className="w-6 h-6 text-white" />
+                </div>
+                <div className="hidden sm:block">
+                  <h1 className="text-xl font-bold text-slate-900 tracking-tight leading-none">Invoice Generator</h1>
+                  <p className="text-xs text-slate-500 font-medium mt-1">Professional Invoicing Tool</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setShowPreview(true)} 
+                  className="hidden lg:flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all"
+                >
+                  <Eye className="w-4 h-4" />
+                  Preview
+                </button>
+
+                <button 
+                  onClick={() => navigate('/data-entry')} 
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-600 hover:bg-slate-100"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Data Entry</span>
+                </button>
+
+                <div className="h-8 w-px bg-slate-200 hidden lg:block mx-1"></div>
+
+                <button 
+                  onClick={handleHistoryClick} 
+                  className="p-2.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                  title="History"
+                >
+                  <History className="w-5 h-5" />
+                </button>
+
+                <button 
+                  onClick={() => setShowProductModal(true)} 
+                  className="p-2.5 text-slate-600 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all"
+                  title="Manage Products"
+                >
+                  <Package className="w-5 h-5" />
+                </button>
+                
+                <button 
+                  onClick={handleUpdateCompany} 
+                  className="p-2.5 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                  title="Company Settings"
+                >
+                  <Building2 className="w-5 h-5" />
+                </button>
+                
+                <button 
+                  onClick={handleSaveAndDownload} 
+                  disabled={isDownloading} 
+                  className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl shadow-xl shadow-slate-900/10 transition-all hover:translate-y-0.5 active:translate-y-0 font-semibold text-sm disabled:opacity-70 disabled:cursor-not-allowed ml-2"
+                >
+                  {isDownloading ? (
+                    <span className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Processing...
+                    </span>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      <span className="hidden sm:inline">{(invoice as any).firebaseId ? 'Update & Download' : 'Save & Download'}</span>
+                      <span className="sm:hidden">Save</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-            <div className="hidden sm:block">
-              <h1 className="text-xl font-bold text-slate-900 tracking-tight leading-none">Invoice Generator</h1>
-              <p className="text-xs text-slate-500 font-medium mt-1">Professional Invoicing Tool</p>
+          </header>
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-28 lg:pt-32 pb-20">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="lg:col-span-12">
+                <InvoiceForm 
+                  data={invoice} 
+                  onChange={handleChange} 
+                  onItemChange={handleItemChange}
+                  onAddItem={addItem}
+                  onRemoveItem={removeItem}
+                  products={products}
+                />
+              </div>
             </div>
           </div>
-          
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setShowPreview(true)} 
-              className="hidden lg:flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all"
-            >
-              <Eye className="w-4 h-4" />
-              Preview
-            </button>
-
-            <div className="h-8 w-px bg-slate-200 hidden lg:block mx-1"></div>
-
-            <button 
-              onClick={handleHistoryClick} 
-              className="p-2.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-              title="History"
-            >
-              <History className="w-5 h-5" />
-            </button>
-
-            <button 
-              onClick={() => setShowProductModal(true)} 
-              className="p-2.5 text-slate-600 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all"
-              title="Manage Products"
-            >
-              <Package className="w-5 h-5" />
-            </button>
-            
-            <button 
-              onClick={handleUpdateCompany} 
-              className="p-2.5 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
-              title="Company Settings"
-            >
-              <Building2 className="w-5 h-5" />
-            </button>
-            
-            <button 
-              onClick={handleSaveAndDownload} 
-              disabled={isDownloading} 
-              className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl shadow-xl shadow-slate-900/10 transition-all hover:translate-y-0.5 active:translate-y-0 font-semibold text-sm disabled:opacity-70 disabled:cursor-not-allowed ml-2"
-            >
-              {isDownloading ? (
-                <span className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Processing...
-                </span>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  <span className="hidden sm:inline">{(invoice as any).firebaseId ? 'Update & Download' : 'Save & Download'}</span>
-                  <span className="sm:hidden">Save</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-28 lg:pt-32 pb-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-12">
-             <InvoiceForm 
-              data={invoice} 
-              onChange={handleChange} 
-              onItemChange={handleItemChange}
-              onAddItem={addItem}
-              onRemoveItem={removeItem}
-              products={products}
-            />
-          </div>
-        </div>
+        </>
+      ) : (
+        <DataEntry />
+      )}
 
         {/* Hidden Preview for PDF Generation */}
         <div id="hidden-preview" className="fixed top-0 left-0 w-[210mm] -z-50 invisible">
@@ -466,7 +486,6 @@ const InvoiceGenerator = () => {
             onDownload={handleHistoryDownload}
           />
         )}
-      </div>
     </div>
   );
 };
