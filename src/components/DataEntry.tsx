@@ -32,7 +32,8 @@ export const DataEntry: React.FC = () => {
     dob: '',
     bloodGroup: '',
     mobile: '',
-    email: ''
+    email: '',
+    batch: ''
   });
 
   const fetchStudents = async () => {
@@ -91,7 +92,8 @@ export const DataEntry: React.FC = () => {
           dob: '',
           bloodGroup: '',
           mobile: '',
-          email: ''
+          email: '',
+          batch: ''
         });
       } else {
         throw new Error('Failed to save data');
@@ -105,6 +107,7 @@ export const DataEntry: React.FC = () => {
   };
 
   const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
+  const batches = ['ED20', 'ED21', 'ED22', 'ED23', 'ED24', 'ED25'];
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4">
@@ -342,6 +345,25 @@ export const DataEntry: React.FC = () => {
                   />
                 </div>
               </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-600 ml-1">Batch</label>
+                <div className="relative group">
+                  <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-purple-500 transition-colors pointer-events-none" />
+                  <select
+                    name="batch"
+                    required
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all font-medium appearance-none"
+                    value={formData.batch}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select Batch</option>
+                    {batches.map(batch => (
+                      <option key={batch} value={batch}>{batch}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
           </section>
         </div>
@@ -407,9 +429,16 @@ export const DataEntry: React.FC = () => {
                           <span className="font-bold text-slate-800 text-lg group-hover:text-blue-700 transition-colors">
                             {student.nameEnglish}
                           </span>
-                          <div className="flex items-center gap-1.5 text-slate-500 font-medium text-sm mt-1">
-                            <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                            {student.placeEnglish}
+                          <div className="flex items-center gap-3 text-slate-500 font-medium text-sm mt-1">
+                            <div className="flex items-center gap-1.5">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                              {student.placeEnglish}
+                            </div>
+                            {student.batch && (
+                              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-xs font-bold">
+                                {student.batch}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
