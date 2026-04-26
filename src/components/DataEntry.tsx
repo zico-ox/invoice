@@ -14,7 +14,13 @@ import {
   MoreVertical,
   Users,
   Search,
-  ExternalLink
+  ExternalLink,
+  Lock,
+  Trash2,
+  Edit3,
+  Info,
+  Eye,
+  X
 } from 'lucide-react';
 
 export const DataEntry: React.FC = () => {
@@ -22,6 +28,9 @@ export const DataEntry: React.FC = () => {
   const [viewMode, setViewMode] = useState(false);
   const [students, setStudents] = useState<any[]>([]);
   const [showMenu, setShowMenu] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
   const [formData, setFormData] = useState({
     nameEnglish: '',
     nameArabic: '',
@@ -62,6 +71,59 @@ export const DataEntry: React.FC = () => {
     fetchStudents();
   };
 
+  const handleAdminAccess = () => {
+    const password = prompt('Enter Admin Password:');
+    if (password === '0044') {
+      setIsAdmin(true);
+      setShowMenu(false);
+      handleViewStudents();
+    } else if (password !== null) {
+      alert('Incorrect password!');
+    }
+  };
+
+  const handleEdit = (student: any) => {
+    setFormData({
+      nameEnglish: student.nameEnglish || '',
+      nameArabic: student.nameArabic || '',
+      fatherNameEnglish: student.fatherNameEnglish || '',
+      fatherNameArabic: student.fatherNameArabic || '',
+      placeEnglish: student.placeEnglish || '',
+      placeArabic: student.placeArabic || '',
+      dob: student.dob || '',
+      bloodGroup: student.bloodGroup || '',
+      mobile: student.mobile || '',
+      email: student.email || '',
+      batch: student.batch || ''
+    });
+    setEditingId(student.id);
+    setViewMode(false);
+    setSelectedStudent(null);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this student record?')) {
+      setLoading(true);
+      try {
+        const response = await fetch(`https://frc-entries-default-rtdb.firebaseio.com/students/${id}.json`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          setStudents(prev => prev.filter(s => s.id !== id));
+          setSelectedStudent(null);
+          alert('Student record deleted successfully.');
+        } else {
+          throw new Error('Failed to delete');
+        }
+      } catch (error) {
+        console.error('Error deleting student:', error);
+        alert('Failed to delete student record.');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -71,17 +133,22 @@ export const DataEntry: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch('https://frc-entries-default-rtdb.firebaseio.com/students.json', {
-        method: 'POST',
+      const url = editingId 
+        ? `https://frc-entries-default-rtdb.firebaseio.com/students/${editingId}.json`
+        : 'https://frc-entries-default-rtdb.firebaseio.com/students.json';
+      
+      const response = await fetch(url, {
+        method: editingId ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          createdAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
+          ...(editingId ? {} : { createdAt: new Date().toISOString() })
         })
       });
 
       if (response.ok) {
-        alert('Student data saved successfully!');
+        alert(editingId ? 'Student data updated successfully!' : 'Student data saved successfully!');
         setFormData({
           nameEnglish: '',
           nameArabic: '',
@@ -95,6 +162,7 @@ export const DataEntry: React.FC = () => {
           email: '',
           batch: ''
         });
+        setEditingId(null);
       } else {
         throw new Error('Failed to save data');
       }
@@ -115,15 +183,31 @@ export const DataEntry: React.FC = () => {
         <div className="flex justify-between items-start mb-10">
           <div className="flex-1">
             <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              {viewMode ? 'Registered Students' : 'Student Data Entry'}
+              {viewMode ? 'Registered Students' : (editingId ? 'Update Student Record' : 'Student Data Entry')}
             </h2>
             <p className="text-slate-500 font-medium mt-2">
               {viewMode 
                 ? `Viewing all ${students.length} registered students`
-                : 'Register new student details with professional precision'}
+                : (editingId ? 'Modify existing student information with precision' : 'Register new student details with professional precision')}
             </p>
             {!viewMode && <div className="h-1 w-20 bg-blue-600 mt-4 rounded-full"></div>}
           </div>
+
+          {editingId && !viewMode && (
+             <button
+               onClick={() => {
+                 setEditingId(null);
+                 setFormData({
+                    nameEnglish: '', nameArabic: '', fatherNameEnglish: '', fatherNameArabic: '',
+                    placeEnglish: '', placeArabic: '', dob: '', bloodGroup: '',
+                    mobile: '', email: '', batch: ''
+                 });
+               }}
+               className="mr-4 px-6 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all"
+             >
+               Cancel Edit
+             </button>
+          )}
           
           <div className="relative">
             <button 
@@ -141,6 +225,14 @@ export const DataEntry: React.FC = () => {
                 >
                   {viewMode ? <UserPlus className="w-5 h-5" /> : <Users className="w-5 h-5" />}
                   {viewMode ? 'New Registration' : 'View Students'}
+                </button>
+                
+                <button
+                  onClick={handleAdminAccess}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-blue-600 transition-colors font-semibold text-sm"
+                >
+                  <Lock className="w-5 h-5" />
+                  {isAdmin ? 'Admin Mode Active' : 'Admin Access'}
                 </button>
               </div>
             )}
@@ -382,7 +474,7 @@ export const DataEntry: React.FC = () => {
             ) : (
               <>
                 <Save className="w-5 h-5" />
-                Save Student Information
+                {editingId ? 'Update Student Information' : 'Save Student Information'}
               </>
             )}
           </button>
@@ -420,25 +512,36 @@ export const DataEntry: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {students.map((student, index) => (
-                    <tr key={student.id} className="group hover:bg-blue-50/30 transition-colors">
+                    <tr 
+                      key={student.id} 
+                      className="group hover:bg-blue-50/30 transition-colors cursor-pointer"
+                      onClick={() => setSelectedStudent(student)}
+                    >
                       <td className="px-6 py-6 text-center">
                         <span className="text-slate-400 font-bold text-sm">{index + 1}</span>
                       </td>
                       <td className="px-6 py-6">
-                        <div className="flex flex-col">
-                          <span className="font-bold text-slate-800 text-lg group-hover:text-blue-700 transition-colors">
-                            {student.nameEnglish}
-                          </span>
-                          <div className="flex items-center gap-3 text-slate-500 font-medium text-sm mt-1">
-                            <div className="flex items-center gap-1.5">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                              {student.placeEnglish}
-                            </div>
-                            {student.batch && (
-                              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-xs font-bold">
-                                {student.batch}
+                        <div className="flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <span className="font-bold text-slate-800 text-lg group-hover:text-blue-700 transition-colors">
+                              {student.nameEnglish}
+                            </span>
+                            <div className="flex items-center gap-3 text-slate-500 font-medium text-sm mt-1">
+                              <div className="flex items-center gap-1.5">
+                                <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                                {student.placeEnglish}
                               </div>
-                            )}
+                              {student.batch && (
+                                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-xs font-bold">
+                                  {student.batch}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">
+                              <Eye className="w-4 h-4" />
+                            </button>
                           </div>
                         </div>
                       </td>
@@ -459,6 +562,81 @@ export const DataEntry: React.FC = () => {
         </div>
       )}
       </div>
+
+      {selectedStudent && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-100 text-blue-600 rounded-2xl">
+                  <User className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-800">{selectedStudent.nameEnglish}</h3>
+                  <p className="text-slate-500 font-medium">{selectedStudent.nameArabic}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedStudent(null)}
+                className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="p-8 grid grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Father's Name</p>
+                  <p className="font-semibold text-slate-700">{selectedStudent.fatherNameEnglish}</p>
+                  <p className="text-sm text-slate-500">{selectedStudent.fatherNameArabic}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Location</p>
+                  <p className="font-semibold text-slate-700">{selectedStudent.placeEnglish}</p>
+                  <p className="text-sm text-slate-500">{selectedStudent.placeArabic}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Date of Birth</p>
+                  <p className="font-semibold text-slate-700">{selectedStudent.dob}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-6">
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Batch & Group</p>
+                  <div className="flex gap-2">
+                    <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg font-bold text-sm">{selectedStudent.batch}</span>
+                    <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-lg font-bold text-sm">{selectedStudent.bloodGroup}</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Contact Details</p>
+                  <p className="font-semibold text-slate-700 flex items-center gap-2 text-sm"><Phone className="w-3.5 h-3.5" /> {selectedStudent.mobile}</p>
+                  <p className="text-sm text-slate-500 flex items-center gap-2 mt-1 text-sm"><Mail className="w-3.5 h-3.5" /> {selectedStudent.email}</p>
+                </div>
+              </div>
+            </div>
+
+            {isAdmin && (
+              <div className="p-8 bg-slate-50 border-t border-slate-100 flex justify-end gap-4">
+                <button 
+                  onClick={() => handleEdit(selectedStudent)}
+                  className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-blue-600 rounded-2xl font-bold hover:bg-blue-50 transition-all shadow-sm"
+                >
+                  <Edit3 className="w-5 h-5" /> Edit Record
+                </button>
+                <button 
+                  onClick={() => handleDelete(selectedStudent.id)}
+                  className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-600 rounded-2xl font-bold hover:bg-red-100 transition-all"
+                >
+                  <Trash2 className="w-5 h-5" /> Delete
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
